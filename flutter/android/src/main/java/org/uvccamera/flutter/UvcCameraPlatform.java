@@ -984,6 +984,47 @@ import io.flutter.view.TextureRegistry;
     }
 
     /**
+     * Starts continuous frame streaming for the specified camera
+     *
+     * @param cameraId      the camera ID
+     * @param frameCallback the frame callback to receive frames
+     * @param pixelFormat   the pixel format (e.g., PIXEL_FORMAT_NV21)
+     */
+    public void startFrameStreaming(
+            final int cameraId,
+            final IFrameCallback frameCallback,
+            final int pixelFormat
+    ) {
+        Log.v(TAG, "startFrameStreaming"
+                + ": cameraId=" + cameraId
+                + ", pixelFormat=" + pixelFormat
+        );
+
+        final var cameraResources = camerasResources.get(cameraId);
+        if (cameraResources == null) {
+            throw new IllegalArgumentException("Camera resources not found for cameraId: " + cameraId);
+        }
+
+        cameraResources.camera().setFrameCallback(frameCallback, pixelFormat);
+    }
+
+    /**
+     * Stops frame streaming for the specified camera
+     *
+     * @param cameraId the camera ID
+     */
+    public void stopFrameStreaming(final int cameraId) {
+        Log.v(TAG, "stopFrameStreaming: cameraId=" + cameraId);
+
+        final var cameraResources = camerasResources.get(cameraId);
+        if (cameraResources == null) {
+            throw new IllegalArgumentException("Camera resources not found for cameraId: " + cameraId);
+        }
+
+        cameraResources.camera().setFrameCallback(null, 0);
+    }
+
+    /**
      * Handles the taken picture
      *
      * @param cameraId      the camera ID
