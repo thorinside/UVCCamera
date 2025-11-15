@@ -380,18 +380,25 @@ static void _uvc_print_streaming_interface_one(uvc_streaming_interface_t *stream
 static uvc_error_t _prepare_stream_ctrl(uvc_device_handle_t *devh, uvc_stream_ctrl_t *ctrl) {
 	// XXX some camera may need to call uvc_query_stream_ctrl with UVC_GET_CUR/UVC_GET_MAX/UVC_GET_MIN
 	// before negotiation otherwise stream stall. added by saki
-	uvc_error_t result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_CUR);	// probe query
-	if (LIKELY(!result)) {
-		result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_MIN);			// probe query
+	// XXX Expert Sleepers Disting NT (VID:0x3773) doesn't support these probe queries and will STALL.
+	// Skip probe queries for Disting NT - it only supports one fixed format (256x64 YUYV/NV12)
+	uvc_error_t result = UVC_SUCCESS;
+	if (!devh->is_disting_nt) {
+		result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_CUR);	// probe query
 		if (LIKELY(!result)) {
-			result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_MAX);		// probe query
-			if (UNLIKELY(result))
-				LOGE("uvc_query_stream_ctrl:UVC_GET_MAX:err=%d", result);	// XXX 最大値の方を後で取得しないとだめ
+			result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_MIN);			// probe query
+			if (LIKELY(!result)) {
+				result = uvc_query_stream_ctrl(devh, ctrl, 1, UVC_GET_MAX);		// probe query
+				if (UNLIKELY(result))
+					LOGE("uvc_query_stream_ctrl:UVC_GET_MAX:err=%d", result);	// XXX 最大値の方を後で取得しないとだめ
+			} else {
+				LOGE("uvc_query_stream_ctrl:UVC_GET_MIN:err=%d", result);
+			}
 		} else {
-			LOGE("uvc_query_stream_ctrl:UVC_GET_MIN:err=%d", result);
+			LOGE("uvc_query_stream_ctrl:UVC_GET_CUR:err=%d", result);
 		}
 	} else {
-		LOGE("uvc_query_stream_ctrl:UVC_GET_CUR:err=%d", result);
+		LOGI("Skipping UVC probe queries for Disting NT - device doesn't support them");
 	}
 #if 0
 	if (UNLIKELY(result)) {
