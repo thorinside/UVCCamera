@@ -88,6 +88,11 @@ import io.flutter.view.TextureRegistry;
     private final UvcCameraDeviceEventStreamHandler deviceEventStreamHandler;
 
     /**
+     * "uvccamera/frames" event stream handler
+     */
+    private final UvcCameraFrameEventStreamHandler frameEventStreamHandler;
+
+    /**
      * USB monitor
      */
     private final USBMonitor usbMonitor;
@@ -119,20 +124,33 @@ import io.flutter.view.TextureRegistry;
      * @param applicationContext the application context
      * @param binaryMessenger    the binary messenger
      * @param textureRegistry    the texture registry
+     * @param deviceEventStreamHandler the device event stream handler
+     * @param frameEventStreamHandler the frame event stream handler
      */
     public UvcCameraPlatform(
             final @NonNull Context applicationContext,
             final @NonNull BinaryMessenger binaryMessenger,
             final @NonNull TextureRegistry textureRegistry,
-            final @NonNull UvcCameraDeviceEventStreamHandler deviceEventStreamHandler
+            final @NonNull UvcCameraDeviceEventStreamHandler deviceEventStreamHandler,
+            final @NonNull UvcCameraFrameEventStreamHandler frameEventStreamHandler
     ) {
         this.applicationContext = new WeakReference<>(applicationContext);
         this.binaryMessenger = new WeakReference<>(binaryMessenger);
         this.textureRegistry = textureRegistry;
         this.deviceEventStreamHandler = deviceEventStreamHandler;
+        this.frameEventStreamHandler = frameEventStreamHandler;
 
         usbMonitor = new USBMonitor(applicationContext, new UvcCameraDeviceMonitorListener(this));
         usbMonitor.register();
+    }
+
+    /**
+     * Returns the frame event stream handler
+     *
+     * @return the frame event stream handler
+     */
+    /* package-private */ UvcCameraFrameEventStreamHandler getFrameEventStreamHandler() {
+        return frameEventStreamHandler;
     }
 
     /**

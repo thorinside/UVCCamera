@@ -31,6 +31,11 @@ public class UvcCameraPlugin implements FlutterPlugin, ActivityAware {
     private EventChannel deviceEventChannel;
 
     /**
+     * "uvccamera/frames" event channel
+     */
+    private EventChannel frameEventChannel;
+
+    /**
      * {@link UvcCameraPlatform} instance.
      */
     private UvcCameraPlatform uvcCameraPlatform;
@@ -45,18 +50,22 @@ public class UvcCameraPlugin implements FlutterPlugin, ActivityAware {
 
         nativeMethodChannel = new MethodChannel(binaryMessenger, "uvccamera/native");
         deviceEventChannel = new EventChannel(binaryMessenger, "uvccamera/device_events");
+        frameEventChannel = new EventChannel(binaryMessenger, "uvccamera/frames");
 
         final var deviceEventChannelStreamHandler = new UvcCameraDeviceEventStreamHandler();
+        final var frameEventChannelStreamHandler = new UvcCameraFrameEventStreamHandler();
 
         uvcCameraPlatform = new UvcCameraPlatform(
                 applicationContext,
                 binaryMessenger,
                 textureRegistry,
-                deviceEventChannelStreamHandler
+                deviceEventChannelStreamHandler,
+                frameEventChannelStreamHandler
         );
 
         nativeMethodChannel.setMethodCallHandler(new UvcCameraNativeMethodCallHandler(uvcCameraPlatform));
         deviceEventChannel.setStreamHandler(deviceEventChannelStreamHandler);
+        frameEventChannel.setStreamHandler(frameEventChannelStreamHandler);
     }
 
     @Override
@@ -86,6 +95,11 @@ public class UvcCameraPlugin implements FlutterPlugin, ActivityAware {
         if (uvcCameraPlatform != null) {
             uvcCameraPlatform.release();
             uvcCameraPlatform = null;
+        }
+
+        if (frameEventChannel != null) {
+            frameEventChannel.setStreamHandler(null);
+            frameEventChannel = null;
         }
 
         if (deviceEventChannel != null) {

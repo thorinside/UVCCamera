@@ -482,6 +482,41 @@ import io.flutter.plugin.common.MethodChannel;
 
                 result.success(null);
             }
+            case "startFrameStreaming" -> {
+                final var cameraId = call.<Integer>argument("cameraId");
+                if (cameraId == null) {
+                    result.error("InvalidArgument", "cameraId is required", null);
+                    return;
+                }
+
+                final var pixelFormat = call.<Integer>argument("pixelFormat");
+                if (pixelFormat == null) {
+                    result.error("InvalidArgument", "pixelFormat is required", null);
+                    return;
+                }
+
+                try {
+                    final var frameCallback = uvcCameraPlatform.getFrameEventStreamHandler().createFrameCallback();
+                    uvcCameraPlatform.startFrameStreaming(cameraId, frameCallback, pixelFormat);
+                    result.success(null);
+                } catch (final Exception e) {
+                    result.error(e.getClass().getSimpleName(), e.getMessage(), null);
+                }
+            }
+            case "stopFrameStreaming" -> {
+                final var cameraId = call.<Integer>argument("cameraId");
+                if (cameraId == null) {
+                    result.error("InvalidArgument", "cameraId is required", null);
+                    return;
+                }
+
+                try {
+                    uvcCameraPlatform.stopFrameStreaming(cameraId);
+                    result.success(null);
+                } catch (final Exception e) {
+                    result.error(e.getClass().getSimpleName(), e.getMessage(), null);
+                }
+            }
             default -> result.notImplemented();
         }
     }
