@@ -419,7 +419,7 @@ import io.flutter.view.TextureRegistry;
         }
         Log.d(TAG, "openCamera: camera opened");
 
-        Log.d(TAG, "openCamera: looking for matching frame size");
+        Log.d(TAG, "openCamera: getting supported frame sizes");
         final List<Size> supportedSizes;
         try {
             supportedSizes = camera.getSupportedSizeList();
@@ -428,14 +428,18 @@ import io.flutter.view.TextureRegistry;
             camera.destroy();
             throw new IllegalStateException("Failed to get supported sizes", e);
         }
-        final var supportedSizesWithAreaDelta = new ArrayList<Pair<Size, Integer>>(supportedSizes.size());
-        for (final var size : supportedSizes) {
-            final var areaDelta = size.width * size.height - desiredFrameArea;
-            supportedSizesWithAreaDelta.add(new Pair<>(size, areaDelta));
+
+        // Check if we got any sizes
+        if (supportedSizes == null || supportedSizes.isEmpty()) {
+            camera.close();
+            camera.destroy();
+            throw new IllegalStateException("No supported frame sizes found");
         }
-        Collections.sort(supportedSizesWithAreaDelta, (l, r) -> Integer.compare(r.second, l.second));
-        final var desiredFrameSize = supportedSizesWithAreaDelta.get(0).first;
-        Log.d(TAG, "openCamera: best size found: " + desiredFrameSize);
+
+        // Use the first available size instead of matching by area
+        // This works for cameras with non-standard resolutions
+        final var desiredFrameSize = supportedSizes.get(0);
+        Log.d(TAG, "openCamera: using first available size: " + desiredFrameSize);
 
         // Set the error callback
         Log.d(TAG, "openCamera: setting error callback");
