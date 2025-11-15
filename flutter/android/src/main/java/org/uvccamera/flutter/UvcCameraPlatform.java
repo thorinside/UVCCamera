@@ -425,8 +425,8 @@ import io.flutter.view.TextureRegistry;
         final var vendorId = device.getVendorId();
         final var productId = device.getProductId();
 
-        // Check if this is a Disting NT (Expert Sleepers VID: 0x16C0, PID: 0x0001)
-        if (vendorId == 0x16C0 && productId == 0x0001) {
+        // Check if this is a Disting NT (Expert Sleepers VID: 0x3773 / 14195 decimal, PID: 0x0001)
+        if (vendorId == 0x3773 && productId == 0x0001) {
             // Size(type, frame_type, index, width, height)
             // type=0, frame_type=0 are reasonable defaults for basic UVC
             desiredFrameSize = new Size(0, 0, 0, 256, 64);
