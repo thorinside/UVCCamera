@@ -470,18 +470,12 @@ import io.flutter.view.TextureRegistry;
         Integer frameFormat = null;
 
         if (isDistingNT) {
-            // Disting NT: Call setPreviewSize with skipProbes=true to avoid UVC probe queries
-            // This initializes capture threads without attempting non-standard probe/commit negotiation
-            Log.d(TAG, "openCamera: setting Disting NT to 256x64 YUYV with skipProbes=true");
+            // Disting NT: Call setPreviewSize with hardcoded 256x64 YUYV
+            // Native libuvc will skip probe queries (see is_disting_nt flag in device.c/stream.c)
+            // but still initialize capture threads properly
+            Log.d(TAG, "openCamera: setting Disting NT to 256x64 YUYV");
             try {
-                camera.setPreviewSize(
-                    256, 64,
-                    UVCCamera.DEFAULT_PREVIEW_MIN_FPS,
-                    UVCCamera.DEFAULT_PREVIEW_MAX_FPS,
-                    UVCCamera.FRAME_FORMAT_YUYV,
-                    UVCCamera.DEFAULT_BANDWIDTH,
-                    true  // skipProbes
-                );
+                camera.setPreviewSize(256, 64, UVCCamera.FRAME_FORMAT_YUYV);
                 frameFormat = UVCCamera.FRAME_FORMAT_YUYV;
             } catch (final IllegalArgumentException e) {
                 camera.close();

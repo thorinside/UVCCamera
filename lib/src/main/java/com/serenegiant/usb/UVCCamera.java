@@ -320,33 +320,12 @@ public class UVCCamera {
 	 * @param bandwidthFactor
 	 */
 	public void setPreviewSize(final int width, final int height, final int min_fps, final int max_fps, final int frameFormat, final float bandwidthFactor) {
-		setPreviewSize(width, height, min_fps, max_fps, frameFormat, bandwidthFactor, false);
-	}
-
-	/**
-	 * Set preview size and preview mode
-	 * @param width
-	 * @param height
-	 * @param min_fps
-	 * @param max_fps
-	 * @param frameFormat either FRAME_FORMAT_YUYV(0) or FRAME_FORMAT_MJPEG(1)
-	 * @param bandwidthFactor
-	 * @param skipProbes if true, skip native UVC probe queries (for non-standard devices like Disting NT)
-	 */
-	public void setPreviewSize(final int width, final int height, final int min_fps, final int max_fps, final int frameFormat, final float bandwidthFactor, final boolean skipProbes) {
 		if ((width == 0) || (height == 0))
 			throw new IllegalArgumentException("invalid preview size");
 		if (mNativePtr != 0) {
-			if (!skipProbes) {
-				// Normal path for standard UVC devices
-				final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
-				if (result != 0)
-					throw new IllegalArgumentException("Failed to set preview size");
-			} else {
-				Log.d(TAG, "setPreviewSize: skipping native probe queries (skipProbes=true)");
-			}
-
-			// Set member variables for both normal and skipProbes mode
+			final int result = nativeSetPreviewSize(mNativePtr, width, height, min_fps, max_fps, frameFormat, bandwidthFactor);
+			if (result != 0)
+				throw new IllegalArgumentException("Failed to set preview size");
 			mCurrentFrameFormat = frameFormat;
 			mCurrentWidth = width;
 			mCurrentHeight = height;
