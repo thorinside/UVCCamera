@@ -14,6 +14,7 @@ import android.util.Pair;
 
 import androidx.annotation.NonNull;
 
+import com.serenegiant.usb.IFrameCallback;
 import com.serenegiant.usb.Size;
 import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.usb.UVCCamera;
