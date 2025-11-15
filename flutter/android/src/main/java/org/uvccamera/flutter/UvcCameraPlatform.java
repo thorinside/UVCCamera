@@ -470,10 +470,19 @@ import io.flutter.view.TextureRegistry;
         Integer frameFormat = null;
 
         if (isDistingNT) {
-            // Disting NT: Skip setPreviewSize - libuvc will use the device's default format
-            // (256x64 YUYV/NV12 based on macOS AVFoundation detection)
-            Log.d(TAG, "openCamera: skipping setPreviewSize for Disting NT - using device defaults");
-            frameFormat = UVCCamera.FRAME_FORMAT_YUYV; // Assume YUYV for display purposes
+            // Disting NT: Call setPreviewSize with hardcoded 256x64 YUYV
+            // Native libuvc will skip probe queries (see is_disting_nt flag in device.c/stream.c)
+            // but still initialize capture threads properly
+            Log.d(TAG, "openCamera: setting Disting NT to 256x64 YUYV");
+            try {
+                camera.setPreviewSize(256, 64, UVCCamera.FRAME_FORMAT_YUYV);
+                frameFormat = UVCCamera.FRAME_FORMAT_YUYV;
+            } catch (final IllegalArgumentException e) {
+                camera.close();
+                camera.destroy();
+                throw new IllegalStateException("Failed to set preview size for Disting NT", e);
+            }
+            Log.d(TAG, "openCamera: Disting NT preview size set successfully");
         } else {
             // Standard UVC devices: try MJPEG first, then YUYV
             Log.d(TAG, "openCamera: setting preview size and frame format");
