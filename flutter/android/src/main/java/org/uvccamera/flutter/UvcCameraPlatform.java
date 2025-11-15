@@ -419,27 +419,21 @@ import io.flutter.view.TextureRegistry;
         }
         Log.d(TAG, "openCamera: camera opened");
 
-        Log.d(TAG, "openCamera: getting supported frame sizes");
-        final List<Size> supportedSizes;
-        try {
-            supportedSizes = camera.getSupportedSizeList();
-        } catch (final Exception e) {
-            camera.close();
-            camera.destroy();
-            throw new IllegalStateException("Failed to get supported sizes", e);
-        }
+        // Skip getSupportedSizeList() due to SELinux restrictions on debugfs access
+        // Use hardcoded resolution for Disting NT (256x64) or fallback to 640x480
+        final Size desiredFrameSize;
+        final var vendorId = device.getVendorId();
+        final var productId = device.getProductId();
 
-        // Check if we got any sizes
-        if (supportedSizes == null || supportedSizes.isEmpty()) {
-            camera.close();
-            camera.destroy();
-            throw new IllegalStateException("No supported frame sizes found");
+        // Check if this is a Disting NT (Expert Sleepers VID: 0x16C0, PID: 0x0001)
+        if (vendorId == 0x16C0 && productId == 0x0001) {
+            desiredFrameSize = new Size(256, 64);
+            Log.d(TAG, "openCamera: detected Disting NT, using hardcoded size: 256x64");
+        } else {
+            // For other devices, use a common UVC resolution
+            desiredFrameSize = new Size(640, 480);
+            Log.d(TAG, "openCamera: using fallback size: 640x480 for VID:" + String.format("0x%04X", vendorId) + " PID:" + String.format("0x%04X", productId));
         }
-
-        // Use the first available size instead of matching by area
-        // This works for cameras with non-standard resolutions
-        final var desiredFrameSize = supportedSizes.get(0);
-        Log.d(TAG, "openCamera: using first available size: " + desiredFrameSize);
 
         // Set the error callback
         Log.d(TAG, "openCamera: setting error callback");
