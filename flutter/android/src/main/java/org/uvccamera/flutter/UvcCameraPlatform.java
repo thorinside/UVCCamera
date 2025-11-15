@@ -465,27 +465,38 @@ import io.flutter.view.TextureRegistry;
         }
 
         // Set the preview size and the frame format
-        Log.d(TAG, "openCamera: setting preview size and frame format");
+        // Disting NT doesn't provide UVC format descriptors, so skip setPreviewSize for it
+        final boolean isDistingNT = (vendorId == 0x3773 && productId == 0x0001);
         Integer frameFormat = null;
-        for (final var desiredFrameFormat : List.of(UVCCamera.FRAME_FORMAT_MJPEG, UVCCamera.FRAME_FORMAT_YUYV)) {
-            try {
-                camera.setPreviewSize(
-                        desiredFrameSize.width,
-                        desiredFrameSize.height,
-                        desiredFrameFormat
-                );
-                frameFormat = desiredFrameFormat;
-                break;
-            } catch (final IllegalArgumentException e) {
-                Log.w(TAG, "Unsupported frame format: " + desiredFrameFormat);
+
+        if (isDistingNT) {
+            // Disting NT: Skip setPreviewSize - libuvc will use the device's default format
+            // (256x64 YUYV/NV12 based on macOS AVFoundation detection)
+            Log.d(TAG, "openCamera: skipping setPreviewSize for Disting NT - using device defaults");
+            frameFormat = UVCCamera.FRAME_FORMAT_YUYV; // Assume YUYV for display purposes
+        } else {
+            // Standard UVC devices: try MJPEG first, then YUYV
+            Log.d(TAG, "openCamera: setting preview size and frame format");
+            for (final var desiredFrameFormat : List.of(UVCCamera.FRAME_FORMAT_MJPEG, UVCCamera.FRAME_FORMAT_YUYV)) {
+                try {
+                    camera.setPreviewSize(
+                            desiredFrameSize.width,
+                            desiredFrameSize.height,
+                            desiredFrameFormat
+                    );
+                    frameFormat = desiredFrameFormat;
+                    break;
+                } catch (final IllegalArgumentException e) {
+                    Log.w(TAG, "Unsupported frame format: " + desiredFrameFormat);
+                }
             }
+            if (frameFormat == null) {
+                camera.close();
+                camera.destroy();
+                throw new IllegalStateException("No supported frame format found");
+            }
+            Log.d(TAG, "openCamera: preview size and frame format set: frameFormat=" + frameFormat);
         }
-        if (frameFormat == null) {
-            camera.close();
-            camera.destroy();
-            throw new IllegalStateException("No supported frame format found");
-        }
-        Log.d(TAG, "openCamera: preview size and frame format set: frameFormat=" + frameFormat);
 
         // Set the preview display surface and start the preview
         Log.d(TAG, "openCamera: setting preview surface and starting preview");
