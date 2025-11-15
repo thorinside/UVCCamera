@@ -427,11 +427,13 @@ import io.flutter.view.TextureRegistry;
 
         // Check if this is a Disting NT (Expert Sleepers VID: 0x16C0, PID: 0x0001)
         if (vendorId == 0x16C0 && productId == 0x0001) {
-            desiredFrameSize = new Size(256, 64);
+            // Size(type, frame_type, index, width, height)
+            // type=0, frame_type=0 are reasonable defaults for basic UVC
+            desiredFrameSize = new Size(0, 0, 0, 256, 64);
             Log.d(TAG, "openCamera: detected Disting NT, using hardcoded size: 256x64");
         } else {
             // For other devices, use a common UVC resolution
-            desiredFrameSize = new Size(640, 480);
+            desiredFrameSize = new Size(0, 0, 0, 640, 480);
             Log.d(TAG, "openCamera: using fallback size: 640x480 for VID:" + String.format("0x%04X", vendorId) + " PID:" + String.format("0x%04X", productId));
         }
 
