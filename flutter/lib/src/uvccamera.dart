@@ -23,4 +23,14 @@ class UvcCamera {
   static Stream<UvcCameraDeviceEvent> get deviceEventStream {
     return UvcCameraPlatformInterface.instance.deviceEventStream;
   }
+
+  /// Starts frame streaming for the specified camera.
+  static Future<void> startFrameStreaming(int cameraId, int pixelFormat) {
+    return UvcCameraPlatformInterface.instance.startFrameStreaming(cameraId, pixelFormat);
+  }
+
+  /// Stops frame streaming for the specified camera.
+  static Future<void> stopFrameStreaming(int cameraId) {
+    return UvcCameraPlatformInterface.instance.stopFrameStreaming(cameraId);
+  }
 }
